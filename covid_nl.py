@@ -56,7 +56,8 @@ def province_confirmed_table(df):
 
 
 def update_data():
-    global script_dir  
+    global script_dir
+    import pathlib
     script_dir = os.path.dirname(__file__) + "/"
     first_day = datetime.strptime('27022020', "%d%m%Y").date()
     today = datetime.now().date()
@@ -84,13 +85,18 @@ def update_data():
     df.dropna(how='all', inplace=True)
     df.fillna(value=0, inplace=True)        
 
-    provincie_df = pd.read_excel(f"{script_dir}input_data/Gemeenten alfabetisch 2020.xlsx")
+    provincie_df = pd.read_excel(f"{script_dir}input_data\\Gemeenten alfabetisch 2020.xlsx")
     provincie_df.set_index("Gemeentecode", inplace = True)
     provincie_df = provincie_df[["Provinciecode", "Provincienaam", "Gemeentenaam"]]
     df = df.merge(provincie_df, left_index=True, right_index=True)
 
+    bevolkingsaantal = pd.read_csv(f"{script_dir}input_data\\klik_corona17032020.csv", delimiter=";", decimal=",", dtype = {"BevAant" : "object"})
+    bevolkingsaantal = bevolkingsaantal[["Gemnr", "BevAant"]]
+    bevolkingsaantal.set_index("Gemnr", inplace = True)
+    df = df.merge(bevolkingsaantal, left_index=True, right_index=True)
+
     cols = df.columns.tolist()
-    cols = cols[-3:] + cols[:-3]
+    cols = cols[-4:] + cols[:-4]
     df = df[cols]
 
     df.sort_values(['Gemeentenaam'], ascending=1, inplace = True)
@@ -99,7 +105,6 @@ def update_data():
     df.to_csv(f"{script_dir}rivm_covid_19_data/rivm_covid_19_time_series/time_series_19-covid-Confirmed_city.csv")
     df.to_excel(f"{script_dir}rivm_covid_19_data/rivm_covid_19_time_series/time_series_19-covid-Confirmed_city.xlsx")
 
-    
     print(df)
 
     reddit_confirmed_table(df, "gemeente")
