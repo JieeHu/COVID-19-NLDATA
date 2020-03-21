@@ -1,0 +1,65 @@
+import pandas as pd
+import requests
+from bs4 import BeautifulSoup
+import unicodedata
+from datetime import date
+from datetime import timedelta
+import csv
+import re
+import nltk
+#nltk.download('punkt')
+from nltk.tokenize import sent_tokenize
+
+# Get text data from RIVM
+site = "https://www.rivm.nl/nieuws/actuele-informatie-over-coronavirus"
+page = requests.get(site)
+
+soup = BeautifulSoup(page.content, 'html.parser')
+data = soup.find('div', {"class":"par content-block-wrapper"})
+text = data.text
+
+# Tokenize and clean text on a sentence level
+sent_text = sent_tokenize(text)
+sent_text = text.split('.')
+sent_text = [sent.replace('\n', ' ').replace('\xa0', ' ') for sent in sent_text]
+
+# Get the date, total hospitalized patients and total deaths in the Netherlands from the text
+hospitalized = []
+deaths = []
+dates = []
+
+for sen in sent_text:
+    # manually decided on this pattern to get the number of hospitalized patients in the news article of RIVM
+    if 'opgenomen' in sen and '(geweest)' in sen:
+        print(sen)
+        int_value = [int(s) for s in sen.split() if s.isdigit()]
+        hospitalized.append(int_value[0])
+    # manually decided on this pattern to get the number of deaths in the news article of RIVM
+    elif "totaal" in sen and ("mensen overleden" in sen or "mensen gestorven" in sen):
+        print(sen)
+        int_value = [int(s) for s in sen.split() if s.isdigit()]
+        deaths.append(int_value[0])
+
+# Assumption that RIVM always published the total number of hospitalized patients and deaths in the Netherlands
+if len(hospitalized) == len(deaths):
+    for num_days in range(0, len(hospitalized)):
+        date_value = (date.today() - timedelta(days=num_days)).strftime('%d-%m-%Y')
+        dates.append(date_value)
+        print(date_value)
+else:
+    print("Could not extract data for one of the values")
+
+# Load existing csv into a dataframe
+df = pd.read_csv("COVID-19-NLDATA/rivm_covid_19_data/covid_19_deaths_timeseries/time_series_total_deaths_NL.csv")
+
+# Put the extracted values into a dataframe
+new_data = []
+for i in range(len(dates)):
+    row = [dates[i], hospitalized[i], deaths[i]]
+    new_data.append(row)
+
+new_data.reverse()
+df_new = pd.DataFrame(new_data, columns=df.columns)
+
+ultimate_df = pd.concat([df,df_new])
+ultimate_df = ultimate_df.drop_duplicates( keep='last').copy()

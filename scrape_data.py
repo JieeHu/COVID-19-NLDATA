@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 from datetime import date
+import csv
 
 site = " https://www.rivm.nl/coronavirus-kaart-van-nederland" 
 page = requests.get(site)
