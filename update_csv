@@ -65,3 +65,4 @@ ultimate_df = pd.concat([df,df_new])
 ultimate_df = ultimate_df.drop_duplicates( keep='last').copy()
 
 ultimate_df.to_csv("COVID-19-NLDATA/rivm_covid_19_data/covid_19_deaths_timeseries/time_series_total_deaths_NL.csv", index=False)
+print(ultimate_df)
