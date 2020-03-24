@@ -35,7 +35,7 @@ for sen in sent_text:
         int_value = [int(s) for s in sen.split() if s.isdigit()]
         hospitalized.append(int_value[0])
     # manually decided on this pattern to get the number of deaths in the news article of RIVM
-    elif "totaal" in sen and ("mensen overleden" in sen or "mensen gestorven" in sen):
+    elif "totaal" in sen and ("mensen overleden" in sen or "mensen gestorven" in sen or "mensen gemeld" in sen):
         print(sen)
         int_value = [int(s) for s in sen.split() if s.isdigit()]
         deaths.append(int_value[0])
